@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>AnimeStream</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #0b0f19;
+      color: #e5e7eb;
+    }
+    a { text-decoration: none; color: inherit; }
+
+    /* HEADER */
+    header {
+      background: #111827;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #1f2933;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+      color: #22d3ee;
+      font-weight: bold;
+    }
+    .search-box input {
+      background: #020617;
+      border: 1px solid #1f2933;
+      color: #e5e7eb;
+      padding: 8px 12px;
+      border-radius: 6px;
+      width: 220px;
+    }
+
+    /* LAYOUT */
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 24px;
+      padding: 24px;
+    }
+
+    /* MAIN CONTENT */
+    .main-content h2 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 20px;
+      border-left: 4px solid #22d3ee;
+      padding-left: 10px;
+    }
+    .anime-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 16px;
+    }
+    .anime-card {
+      background: #020617;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .anime-card:hover {
+      transform: translateY(-4px);
+    }
+    .anime-thumb {
+      height: 220px;
+      background: linear-gradient(135deg, #1e293b, #020617);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #94a3b8;
+    }
+    .anime-info {
+      padding: 10px;
+    }
+    .anime-info h3 {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      background: #020617;
+      border-radius: 8px;
+      padding: 16px;
+      height: fit-content;
+    }
+    .sidebar h3 {
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 16px;
+      border-bottom: 1px solid #1f2933;
+      padding-bottom: 8px;
+    }
+    .episode-list div {
+      padding: 8px 6px;
+      font-size: 14px;
+      cursor: pointer;
+      border-bottom: 1px dashed #1f2933;
+    }
+    .episode-list div:hover {
+      color: #22d3ee;
+    }
+
+    /* PLAYER PAGE */
+    .player {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: black;
+      margin-bottom: 16px;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>AnimeStream</h1>
+  <div class="search-box">
+    <input type="text" placeholder="Cari anime..." />
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="main-content">
+    <h2>Anime Terbaru</h2>
+    <div class="anime-grid">
+      <!-- FORM TAMBAH ANIME / EPISODE -->
+      <div class="anime-card" style="grid-column:1/-1; padding:16px; cursor:default;">
+        <h3>Tambah Episode (YouTube)</h3>
+        <input id="animeName" placeholder="Judul Anime" style="width:100%;margin-bottom:8px;padding:8px" />
+        <input id="episodeTitle" placeholder="Judul Episode" style="width:100%;margin-bottom:8px;padding:8px" />
+        <input id="youtubeLink" placeholder="Link YouTube" style="width:100%;margin-bottom:8px;padding:8px" />
+        <button onclick="addEpisode()" style="padding:8px 12px;cursor:pointer">Tambah</button>
+      </div>
+      <div class="anime-card" onclick="openPlayer('Anime A')">
+        <div class="anime-thumb">Poster Anime</div>
+        <div class="anime-info"><h3>Anime A</h3></div>
+      </div>
+      <div class="anime-card" onclick="openPlayer('Anime B')">
+        <div class="anime-thumb">Poster Anime</div>
+        <div class="anime-info"><h3>Anime B</h3></div>
+      </div>
+      <div class="anime-card" onclick="openPlayer('Anime C')">
+        <div class="anime-thumb">Poster Anime</div>
+        <div class="anime-info"><h3>Anime C</h3></div>
+      </div>
+    </div>
+
+    <div id="playerSection" style="display:none; margin-top:32px;">
+      <div class="player">
+        <iframe id="videoPlayer" src="" allowfullscreen></iframe>
+      </div>
+      <h2 id="animeTitle"></h2>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <h3>Episode</h3>
+    <div class="episode-list">
+      <div onclick="playEpisode('Episode 1','https://www.youtube.com/embed/dQw4w9WgXcQ')">Episode 1</div>
+      <div onclick="playEpisode('Episode 2','https://www.youtube.com/embed/9bZkp7q19f0')">Episode 2</div>
+      <div onclick="playEpisode('Episode 3','https://www.youtube.com/embed/l482T0yNkeo')">Episode 3</div>
+    </div>
+  </aside>
+
+</div>
+
+<script>
+  // DATA ANIME (SIMULASI DATABASE)
+  const animeData = {
+    // ANIME DEFAULT
+    "Anime A": {
+      episodes: [
+        { title: "Episode 1", url: "https://www.youtube.com/embed/dQw4w9WgXcQ" },
+        { title: "Episode 2", url: "https://www.youtube.com/embed/9bZkp7q19f0" }
+      ]
+    },
+    "Anime B": {
+      episodes: [
+        { title: "Episode 1", url: "https://www.youtube.com/embed/l482T0yNkeo" }
+      ]
+    },
+    "Anime C": {
+      episodes: [
+        { title: "Episode 1", url: "https://www.youtube.com/embed/8Hm3dIKqdQI" },
+        { title: "Episode 2", url: "https://www.youtube.com/embed/dQw4w9WgXcQ" }
+      ]
+    }
+  };
+
+  function openPlayer(animeTitle) {
+    const anime = animeData[animeTitle];
+    if (!anime) return;
+
+    document.getElementById('playerSection').style.display = 'block';
+    document.getElementById('animeTitle').innerText = animeTitle;
+
+    const episodeList = document.querySelector('.episode-list');
+    episodeList.innerHTML = '';
+
+    anime.episodes.forEach((ep, index) => {
+      const div = document.createElement('div');
+      div.innerText = ep.title;
+      div.onclick = () => playEpisode(ep.url);
+      episodeList.appendChild(div);
+
+      if (index === 0) playEpisode(ep.url);
+    });
+  }
+
+  function convertToEmbed(url) {
+    const id = url.split('v=')[1];
+    return `https://www.youtube.com/embed/${id}`;
+  }
+
+  function addEpisode() {
+    const anime = document.getElementById('animeName').value.trim();
+    const episode = document.getElementById('episodeTitle').value.trim();
+    const link = document.getElementById('youtubeLink').value.trim();
+
+    if (!anime || !episode || !link) {
+      alert('Semua field wajib diisi');
+      return;
+    }
+
+    const embed = convertToEmbed(link);
+
+    if (!animeData[anime]) {
+      animeData[anime] = { episodes: [] };
+
+      const grid = document.querySelector('.anime-grid');
+      const card = document.createElement('div');
+      card.className = 'anime-card';
+      card.onclick = () => openPlayer(anime);
+      card.innerHTML = `<div class="anime-thumb">Poster Anime</div><div class="anime-info"><h3>${anime}</h3></div>`;
+      grid.appendChild(card);
+    }
+
+    animeData[anime].episodes.push({ title: episode, url: embed });
+    alert('Episode berhasil ditambahkan');
+  }
+
+  function playEpisode(url) {
+    document.getElementById('videoPlayer').src = url;
+  }
+</script>
+
+</body>
+</html>
